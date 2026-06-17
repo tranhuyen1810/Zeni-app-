@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart' as fs;
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 
@@ -23,6 +25,9 @@ class AppState extends ChangeNotifier {
   bool firebaseReady = false;
   bool isLoggedIn = false;
   String userName = 'Quản lý';
+
+  FirebaseAuth? _auth;
+  fs.FirebaseFirestore? _firestore;
 
   List<Order> orders = [
     Order(
@@ -88,11 +93,37 @@ class AppState extends ChangeNotifier {
   Future<void> initialize() async {
     if (kIsWeb || Platform.isAndroid || Platform.isIOS) {
       try {
-        await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+        if (DefaultFirebaseOptions.currentPlatform != null) {
+          await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+        } else {
+          await Firebase.initializeApp();
+        }
+        _auth = FirebaseAuth.instance;
+        _firestore = fs.FirebaseFirestore.instance;
         firebaseReady = true;
+        await _syncOrders();
       } catch (_) {
         firebaseReady = false;
       }
+    }
+  }
+
+  Future<void> _syncOrders() async {
+    if (!firebaseReady || _firestore == null) return;
+    try {
+      final snapshot = await _firestore!
+          .collection('orders')
+          .orderBy('createdAt', descending: true)
+          .get();
+      final remoteOrders = snapshot.docs
+          .map((doc) => Order.fromMap(doc.data() as Map<String, dynamic>))
+          .toList();
+      if (remoteOrders.isNotEmpty) {
+        orders = remoteOrders;
+        notifyListeners();
+      }
+    } catch (_) {
+      // ignore firestore sync failure
     }
   }
 
@@ -100,10 +131,13 @@ class AppState extends ChangeNotifier {
     if (email.trim().isEmpty || password.trim().isEmpty) {
       return false;
     }
-    if (firebaseReady) {
+    if (firebaseReady && _auth != null) {
       try {
-        // TODO: Connect Firebase Authentication here.
-        await Future<void>.delayed(const Duration(milliseconds: 300));
+        final result = await _auth!.signInWithEmailAndPassword(email: email.trim(), password: password.trim());
+        userName = result.user?.email?.split('@').first ?? 'Quản lý';
+        isLoggedIn = true;
+        notifyListeners();
+        return true;
       } catch (_) {
         return false;
       }
@@ -114,14 +148,23 @@ class AppState extends ChangeNotifier {
     return true;
   }
 
-  void logout() {
+  Future<void> logout() async {
+    if (firebaseReady && _auth != null) {
+      await _auth!.signOut();
+    }
     isLoggedIn = false;
     notifyListeners();
   }
 
-  void addOrder(Order order) {
+  Future<void> addOrder(Order order) async {
     orders.insert(0, order);
     notifyListeners();
+    if (!firebaseReady || _firestore == null) return;
+    try {
+      await _firestore!.collection('orders').doc(order.id).set(order.toMap());
+    } catch (_) {
+      // ignore remote save failure
+    }
   }
 
   Future<void> sendMessage(String text) async {

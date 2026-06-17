@@ -52,4 +52,33 @@ class Order {
         return const Color(0xFFEF4444);
     }
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'customer': customer,
+      'licensePlate': licensePlate,
+      'product': product,
+      'quantity': quantity,
+      'status': status.name,
+      'note': note,
+      'createdAt': createdAt.toIso8601String(),
+    };
+  }
+
+  factory Order.fromMap(Map<String, dynamic> map) {
+    return Order(
+      id: map['id'] as String? ?? '',
+      customer: map['customer'] as String? ?? '',
+      licensePlate: map['licensePlate'] as String? ?? '',
+      product: map['product'] as String? ?? '',
+      quantity: (map['quantity'] as num?)?.toDouble() ?? 0.0,
+      status: OrderStatus.values.firstWhere(
+        (value) => value.name == (map['status'] as String? ?? ''),
+        orElse: () => OrderStatus.waiting,
+      ),
+      note: map['note'] as String? ?? '',
+      createdAt: DateTime.tryParse(map['createdAt'] as String? ?? '') ?? DateTime.now(),
+    );
+  }
 }

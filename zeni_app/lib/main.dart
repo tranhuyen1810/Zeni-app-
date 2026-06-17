@@ -8,7 +8,8 @@ import 'screens/orders_screen.dart';
 import 'screens/create_order_screen.dart';
 import 'screens/assistant_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const ZeniApp());
 }
 
