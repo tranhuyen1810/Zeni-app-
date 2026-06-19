@@ -17,11 +17,12 @@ cd zeni_app
 
 > Nếu muốn chạy trên Android, cài đặt Android SDK và thiết bị/emulator rồi dùng `../flutter/bin/flutter run`.
 
-## Build Android AAB
+## Build Android AAB / APK
 ```bash
 cd zeni_app
 ../flutter/bin/flutter pub get
 ../flutter/bin/flutter build appbundle
+../flutter/bin/flutter build apk --release
 ```
 
 ### Ký app release
@@ -30,6 +31,7 @@ cd zeni_app
 - Xây dựng:
 ```bash
 ../flutter/bin/flutter build appbundle --release
+../flutter/bin/flutter build apk --release
 ```
 
 ## GitHub Actions (CI) – build release
@@ -43,7 +45,7 @@ I added GitHub Actions workflows to build the release artifacts automatically.
 		- `KEYSTORE_PASSWORD`
 		- `KEY_ALIAS`
 		- `KEY_PASSWORD`
-	- The workflow writes `android/keystore.jks` and `android/key.properties`, then builds an AAB and uploads it as artifact.
+	- The workflow writes `android/keystore.jks` and `android/key.properties`, then builds both an AAB and an APK, and uploads them as artifacts.
 
 - iOS workflow (skeleton): `.github/workflows/ios-release.yml`
 	- macOS runner required; you must provide Apple credentials and provisioning (see workflow comments).

@@ -35,12 +35,13 @@ keyAlias=${{ secrets.KEY_ALIAS }}
 storeFile=keystore.jks
 EOF
 
-      - name: Build AppBundle
+      - name: Build AppBundle and APK
         working-directory: zeni_app
         env:
           JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
         run: |
           flutter build appbundle --release
+          flutter build apk --release
 
       - name: Upload AAB artifact
         if: always()
@@ -49,3 +50,11 @@ EOF
           name: zeni_app-aab
           path: |
             zeni_app/build/app/outputs/bundle/release/*.aab
+
+      - name: Upload APK artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zeni_app-apk
+          path: |
+            zeni_app/build/app/outputs/flutter-apk/app-release.apk
