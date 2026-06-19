@@ -50,6 +50,10 @@ I added GitHub Actions workflows to build the release artifacts automatically.
 - iOS workflow (skeleton): `.github/workflows/ios-release.yml`
 	- macOS runner required; you must provide Apple credentials and provisioning (see workflow comments).
 
+- Android GitHub Release workflow: `.github/workflows/android-release-github.yml`
+	- Trigger: manual (`workflow_dispatch`) or push tag like `v1.0.0`.
+	- Creates a GitHub Release and attaches both AAB and APK.
+
 To run Android CI manually:
 
 ```bash
