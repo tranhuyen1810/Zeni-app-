@@ -2,6 +2,14 @@ const { app, BrowserWindow } = require('electron');
 const path = require('path');
 const url = require('url');
 
+// Disable hardware acceleration early to improve compatibility in headless or
+// container environments where GPU support is incomplete.
+app.disableHardwareAcceleration();
+app.commandLine.appendSwitch('disable-gpu');
+app.commandLine.appendSwitch('disable-gpu-compositing');
+app.commandLine.appendSwitch('disable-software-rasterizer');
+app.commandLine.appendSwitch('no-sandbox');
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 430,
